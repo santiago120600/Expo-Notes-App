@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {View, Dimensions, StatusBar, StyleSheet, TextInput, Text} from 'react-native';
 import colors from '../misc/colors';
-import RoundIconBtn from './RoundIconBtn';
+import RoundIconBtn from '../components/RoundIconBtn';
 import { AsyncStorage } from 'react-native';
 
 const Intro = () =>{
