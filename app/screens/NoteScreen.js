@@ -3,9 +3,15 @@ import {View, StyleSheet, Text, StatusBar} from 'react-native';
 import colors from '../misc/colors';
 import SearchBar from '../components/SearchBar';
 import RoundIconBtn from '../components/RoundIconBtn';
+import NoteInputModal from '../components/NoteInputModal';
 
 const NoteScreen = ({user}) =>{
     const [greet, setGreet] = useState('');
+    const [modalVisible, setModalVisible] = useState(false);
+
+    const handleOnSubmit = (title, desc) =>{
+        console.log(title, desc);
+    }
     
     const findGreet = () =>{
         const hrs = new Date().getHours();
@@ -26,9 +32,18 @@ const NoteScreen = ({user}) =>{
                 <SearchBar containerStyle={{marginVertical:15}}/>
                 <View style={[StyleSheet.absoluteFillObject,styles.emptyHeaderContainer]}>
                     <Text style={styles.emptyHeader}>Add Notes</Text>
-                    <RoundIconBtn onPress={()=>console.log('openin modal')} antIconName='plus' style={styles.addBtn}/>    
+                    <RoundIconBtn 
+                        onPress={()=>setModalVisible(true)} 
+                        antIconName='plus' 
+                        style={styles.addBtn}
+                        />    
                 </View>
             </View>
+            <NoteInputModal
+                visible={modalVisible}
+                onClose={()=>setModalVisible(false)}
+                onSubmit={handleOnSubmit}
+                />
         </>
     )
 }

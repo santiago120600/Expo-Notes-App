@@ -4,7 +4,7 @@ import colors from '../misc/colors';
 import RoundIconBtn from '../components/RoundIconBtn';
 import { AsyncStorage } from 'react-native';
 
-const Intro = () =>{
+const Intro = ({onFinish}) =>{
     const [name, setName] = useState('');
 
     const handleOnChangeText = text =>{
@@ -18,6 +18,7 @@ const Intro = () =>{
         }catch(e){
             console.log(e);
         }
+        if(onFinish) onFinish();
     };
 
     return (
