@@ -4,6 +4,11 @@ import { StyleSheet, Text, View } from 'react-native';
 import Intro from './app/screens/Intro';
 import { AsyncStorage } from 'react-native';
 import NoteScreen from './app/screens/NoteScreen';
+import { createStackNavigator } from '@react-navigation/stack';
+import NoteDetail from './app/components/NoteDetail';
+import { NavigationContainer } from '@react-navigation/native';
+
+const Stack = createStackNavigator();
 
 export default function App() {
     const [user,setUser] = useState({});
@@ -18,9 +23,20 @@ export default function App() {
         findUser();
         //AsyncStorage.clear();
     },[]);
+
+    const renderNoteScreen = props => <NoteScreen {...props} user={user}/>
     
     if(!user.name) return <Intro onFinish={findUser}/>;
-    return <NoteScreen user={user}/>;
+    return( 
+        <NavigationContainer>
+            <Stack.Navigator
+                screenOptions={{headerTitle:'',headerTransparent:true}}
+            >
+              <Stack.Screen name="NoteScreen" component={renderNoteScreen} />
+              <Stack.Screen name="NoteDetail" component={NoteDetail} />
+            </Stack.Navigator>
+        </NavigationContainer>
+    )
 }
 
 const styles = StyleSheet.create({

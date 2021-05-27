@@ -1,14 +1,14 @@
 import React from 'react';
-import {View, StyleSheet, Text, Dimensions} from 'react-native';
+import {View, StyleSheet, Text, Dimensions, TouchableOpacity} from 'react-native';
 import colors from '../misc/colors';
 
-const Note = ({item}) =>{
+const Note = ({item, onPress}) =>{
     const {title,desc} = item;
     return(
-        <View style={styles.container}>
+        <TouchableOpacity onPress={onPress} style={styles.container}>
             <Text style={styles.title} numberOfLines={2}>{title}</Text>
             <Text style={styles.desc} numberOfLines={3}>{desc}</Text>
-        </View>
+        </TouchableOpacity>
     )
 }
 
