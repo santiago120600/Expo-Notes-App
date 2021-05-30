@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useContext} from 'react';
 import {View, FlatList, Keyboard, StyleSheet, Text, StatusBar, TouchableWithoutFeedback} from 'react-native';
 import colors from '../misc/colors';
 import SearchBar from '../components/SearchBar';
@@ -6,11 +6,12 @@ import RoundIconBtn from '../components/RoundIconBtn';
 import NoteInputModal from '../components/NoteInputModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Note from '../components/Note';
+import {useNotes} from '../context/NoteProvider';
 
 const NoteScreen = ({user, navigation}) =>{
     const [greet, setGreet] = useState('');
     const [modalVisible, setModalVisible] = useState(false);
-    const [notes, setNotes] = useState([]);
+    const {notes, setNotes} = useNotes();
 
     const handleOnSubmit = async (title, desc) =>{
         const note = {id:Date.now(),title,desc,time:Date.now()};
@@ -31,21 +32,7 @@ const NoteScreen = ({user, navigation}) =>{
         setGreet('Evening');
     };
 
-    const findNotes = async () =>{
-        try {
-            const result = await AsyncStorage.getItem('notes')
-            console.log(result);
-            if(result !== null) {
-                setNotes(JSON.parse(result));
-            }
-          } catch(e) {
-            console.log("Error getting notes",e);
-            throw Error(e);
-          }
-    }
-
     useEffect(() => {
-        findNotes();
         findGreet();
     },[]);
 

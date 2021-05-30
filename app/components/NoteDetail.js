@@ -1,12 +1,15 @@
-import React from 'react';
-import {View, StyleSheet, Text, ScrollView} from 'react-native';
+import React, {useContext} from 'react';
+import {View, Alert, StyleSheet, Text, ScrollView} from 'react-native';
 import {useHeaderHeight} from '@react-navigation/stack';
 import colors from '../misc/colors';
 import RoundIconBtn from './RoundIconBtn';
+import { AsyncStorage } from 'react-native';
+import {useNotes} from '../context/NoteProvider';
 
 const NoteDetail = (props) =>{
     const {note} = props.route.params;
     const headerHeight = useHeaderHeight();
+    const {setNotes} =useNotes();
     const formatDate = (ms) =>{
         const date = new Date(ms);
         const day = date.getDate();
@@ -17,6 +20,40 @@ const NoteDetail = (props) =>{
         const sec = date.getSeconds();
         return `${day}/${month}/${year} - ${hrs}:${min}:${sec}`;
     }
+
+    const deleteNote = async () =>{
+        try{
+            const result = await AsyncStorage.getItem('notes');
+            let notes = [];
+            if(result !== null) {
+                notes = JSON.parse(result);
+                const newNotes = notes.filter(n => n.id !== note.id);
+                setNotes(newNotes);
+                await AsyncStorage.setItem('notes', JSON.stringify(newNotes));
+            }
+            props.navigation.goBack();    
+        }catch(e){
+            console.log("Error deleting note",e);
+            throw Error(e);
+        }
+    }
+
+    const displayDeleteAlert = () =>{
+        Alert.alert('Are you sure!','This actions will delete your note permanently!',
+        [
+            {
+                text:'Delete',
+                onPress: deleteNote
+            },
+            {
+                text:'No thanks',
+                onPress: ()=>console.log('No thanks')
+            }
+        ],{
+            cancelable:true,
+        });
+    }
+
     return(
         <>
         <ScrollView contentContainerStyle={[styles.container, {paddingTop:headerHeight}]}>
@@ -28,7 +65,7 @@ const NoteDetail = (props) =>{
             <View style={styles.btnContainer}>
                 <RoundIconBtn
                     antIconName='delete' 
-                    onPress={()=>console.log('deleting note')}
+                    onPress={displayDeleteAlert}
                     style={{backgroundColor:colors.ERROR, color:'white', marginBottom:15}}/>
                 <RoundIconBtn 
                     antIconName='edit' 
