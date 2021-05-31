@@ -1,15 +1,18 @@
-import React, {useContext} from 'react';
+import React, {useContext, useState} from 'react';
 import {View, Alert, StyleSheet, Text, ScrollView} from 'react-native';
 import {useHeaderHeight} from '@react-navigation/stack';
 import colors from '../misc/colors';
 import RoundIconBtn from './RoundIconBtn';
 import { AsyncStorage } from 'react-native';
 import {useNotes} from '../context/NoteProvider';
+import NoteInputModal from './NoteInputModal';
 
 const NoteDetail = (props) =>{
-    const {note} = props.route.params;
+    const [note,setNote] = useState(props.route.params.note);
     const headerHeight = useHeaderHeight();
     const {setNotes} =useNotes();
+    const [showModal, setShowModal] = useState(false);
+    const [isEdit, setIsEdit] = useState(false);
     const formatDate = (ms) =>{
         const date = new Date(ms);
         const day = date.getDate();
@@ -54,10 +57,42 @@ const NoteDetail = (props) =>{
         });
     }
 
+    const handleUpdate = async (title,desc,time)=>{
+        try{
+            const result = await AsyncStorage.getItem('notes');
+            let notes = [];
+            if(result !== null){
+                notes = JSON.parse(result);
+            }
+            const newNotes = notes.filter(n=>{
+                if(n.id===note.id){
+                    n.title = title;
+                    n.desc = desc;
+                    n.isUpdated = true;
+                    n.time = time;
+
+                    setNote(n);
+                }
+                return n;
+            });
+            setNotes(newNotes);
+            await AsyncStorage.setItem('notes',JSON.stringify(newNotes));
+        }catch(e){
+            console.log("Error updating note",e);
+            throw Error(e);
+        }
+    }
+
+    const handleOnClose = () =>{setShowModal(false)}
+    const openEditModal =()=>{
+        setIsEdit(true);
+        setShowModal(true);
+    }
+
     return(
         <>
         <ScrollView contentContainerStyle={[styles.container, {paddingTop:headerHeight}]}>
-            <Text style={styles.time}>{`Created At ${formatDate(note.time)}`}</Text>
+            <Text style={styles.time}>{note.isUpdated ? `Updated At ${formatDate(note.time)}`:  `Created At ${formatDate(note.time)}`}</Text>
             <Text style={styles.title}>{note.title}</Text>
             <Text style={styles.desc}>{note.desc}</Text>
         </ScrollView>
@@ -69,8 +104,15 @@ const NoteDetail = (props) =>{
                     style={{backgroundColor:colors.ERROR, color:'white', marginBottom:15}}/>
                 <RoundIconBtn 
                     antIconName='edit' 
-                    onPress={()=>console.log('edit note')}
+                    onPress={openEditModal}
                     style={{color:'white'}}/>
+                <NoteInputModal
+                   note={note} 
+                   isEdit={isEdit} 
+                   onClose={handleOnClose} 
+                   onSubmit={handleUpdate} 
+                   visible={showModal}
+                />
             </View>
         </>
     )
