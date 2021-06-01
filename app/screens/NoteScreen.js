@@ -7,11 +7,14 @@ import NoteInputModal from '../components/NoteInputModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Note from '../components/Note';
 import {useNotes} from '../context/NoteProvider';
+import NotFound from '../components/NotFound';
 
 const NoteScreen = ({user, navigation}) =>{
     const [greet, setGreet] = useState('');
     const [modalVisible, setModalVisible] = useState(false);
-    const {notes, setNotes} = useNotes();
+    const {notes, setNotes, findNotes} = useNotes();
+    const [searchQuery, setSeachQuery] = useState('');
+    const [resultNotFound, setResultNotFound] = useState(false);
 
     const handleOnSubmit = async (title, desc) =>{
         const note = {id:Date.now(),title,desc,time:Date.now()};
@@ -23,6 +26,12 @@ const NoteScreen = ({user, navigation}) =>{
             console.log("Error setting notes",e);
             throw Error(e);
         }
+    }
+
+    const handleOnClear =  async () =>{
+        setSeachQuery('');
+        setResultNotFound(false);
+        await findNotes();
     }
 
     const findGreet = () =>{
@@ -40,6 +49,25 @@ const NoteScreen = ({user, navigation}) =>{
         navigation.navigate('NoteDetail',{note});
     }
 
+    const handleOnSearchInput = async (text)=>{
+        setSeachQuery(text);
+        if(!text.trim()){
+            setSeachQuery('');
+            setResultNotFound(false);
+            return await findNotes();
+        }
+        const filteredNotes = notes.filter(note=>{
+            if(note.title.toLowerCase().includes(text.toLowerCase())){
+                return note;
+            }
+        });
+        if(filteredNotes.length){
+            setNotes([...filteredNotes]);
+        }else{
+            setResultNotFound(true);
+        }
+    }
+
     return(
         <>
             <StatusBar barStyle='dark-content' backgroundColor={colors.LIGHT}/>
@@ -47,19 +75,28 @@ const NoteScreen = ({user, navigation}) =>{
                 <View style={styles.container}>
                     <Text style={styles.header}>{`Good ${greet} ${user.name}`}</Text>
                     {notes.length ? 
-                        <SearchBar containerStyle={{marginVertical:15}}/>
+                        <SearchBar
+                            value={searchQuery}
+                            onChangeText={handleOnSearchInput}
+                            containerStyle={{marginVertical:15}}
+                            onClear={handleOnClear}
+                        />
                         : null
                     }
-                    <FlatList
-                        columnWrapperStyle={{
-                            justifyContent:'space-between',
-                            marginBottom:15,    
-                        }}
-                        numColumns={2}
-                        data={notes}
-                        keyExtractor={item => item.id.toString()}
-                        renderItem={({item})=><Note onPress={()=>openNote(item)} item={item}/>}
-                    />
+                    {resultNotFound ? 
+                        (<NotFound/>)  :
+                        (
+                        <FlatList
+                            columnWrapperStyle={{
+                                justifyContent:'space-between',
+                                marginBottom:15,    
+                            }}
+                            numColumns={2}
+                            data={notes}
+                            keyExtractor={item => item.id.toString()}
+                            renderItem={({item})=><Note onPress={()=>openNote(item)} item={item}/>}
+                        />
+                        )}
                     {!notes.length ? (
                         <View style={[StyleSheet.absoluteFillObject,styles.emptyHeaderContainer]}>
                             <Text style={styles.emptyHeader}>Add Notes</Text>
